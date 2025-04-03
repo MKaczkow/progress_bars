@@ -21,10 +21,6 @@ function updateDailyProgress() {
     progressPercentage.textContent = `${percentage.toFixed(2)}% of the day completed`;
 }
 
-// Update day progress every minute
-setInterval(updateDailyProgress, 60 * 1000);
-updateDailyProgress(); // Initial call to set the progress immediately
-
 function updateMonthlyProgress() {
     const now = new Date();
 
@@ -43,10 +39,6 @@ function updateMonthlyProgress() {
     const monthlyProgressPercentage = document.getElementById("monthly-progress-percentage");
     monthlyProgressPercentage.textContent = `${percentage.toFixed(2)}% of the month completed`;
 }
-
-// Update month progress every hour
-setInterval(updateMonthlyProgress, 60 * 60 * 1000);
-updateMonthlyProgress(); // Initial call to set the progress immediately
 
 function updateYearlyProgress() {
     const now = new Date();
@@ -67,12 +59,6 @@ function updateYearlyProgress() {
     const yearlyProgressPercentage = document.getElementById("yearly-progress-percentage");
     yearlyProgressPercentage.textContent = `${percentage.toFixed(2)}% of the year completed`;
 }
-
-
-
-// Update year progress every day
-setInterval(updateYearlyProgress, 24 * 60 * 60 * 1000);
-updateYearlyProgress(); // Initial call to set the progress immediately
 
 async function updateSunlightProgress() {
     const now = new Date();
@@ -183,6 +169,33 @@ function parseTimeString(timeString, currentDate) {
     return date;
 }
 
-// Update progress every minute
-setInterval(updateSunlightProgress, 60 * 1000);
-updateSunlightProgress(); // Initial call to set the progress immediately
+function initialize() {
+    const now = new Date();
+    
+    // Update day progress every minute
+    setInterval(updateDailyProgress, 60 * 1000);
+    
+    // Update month progress every hour
+    setInterval(updateMonthlyProgress, 60 * 60 * 1000);
+    
+    // Update year progress every day
+    setInterval(updateYearlyProgress, 24 * 60 * 60 * 1000);
+    
+    // Update progress every minute
+    setInterval(updateSunlightProgress, 60 * 1000);
+
+    // Initialize daily progress
+    updateDailyProgress();
+
+    // Initialize monthly progress
+    updateMonthlyProgress();
+
+    // Initialize yearly progress
+    updateYearlyProgress();
+
+    // Initialize sunlight progress
+    updateSunlightProgress();
+}
+
+document.addEventListener("DOMContentLoaded", initialize);
+initialize();
