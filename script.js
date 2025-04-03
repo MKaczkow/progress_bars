@@ -24,12 +24,18 @@ function updateDailyProgress() {
 function updateMonthlyProgress() {
     const now = new Date();
 
-    // Calculate the total days passed this month
+    // Calculate the total hours in this month
     const totalDaysThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const totalDaysPassed = now.getDate();
-
+    const totalHoursThisMonth = totalDaysThisMonth * 24;
+    
+    // Get start of the month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    // Calculate hours passed since start of month (milliseconds → hours)
+    const hoursPassed = Math.floor((now - startOfMonth) / (1000 * 60 * 60));
+    
     // Calculate the percentage of the month that has passed
-    const percentage = (totalDaysPassed / totalDaysThisMonth) * 100;
+    const percentage = (hoursPassed / totalHoursThisMonth) * 100;
 
     // Update progress bar width
     const monthlyProgressFill = document.getElementById("monthly-progress-fill");
@@ -43,13 +49,18 @@ function updateMonthlyProgress() {
 function updateYearlyProgress() {
     const now = new Date();
 
-    // Calculate the total days passed this year
+    // Calculate the total hours passed this year
     const isLeapYear = new Date(now.getFullYear(), 1, 29).getDate() === 29;
-    const totalDaysThisYear = isLeapYear ? 366 : 365;
-    const totalDaysPassed = Math.floor((now - new Date(now.getFullYear(), 0, 1)) / (1000 * 60 * 60 * 24)) + 1;
-
+    const totalHoursThisYear = isLeapYear ? 366 * 24 : 365 * 24;
+    
+    // Get start of the year
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    
+    // Calculate hours passed since start of year (milliseconds → hours)
+    const hoursPassed = Math.floor((now - startOfYear) / (1000 * 60 * 60));
+    
     // Calculate the percentage of the year that has passed
-    const percentage = (totalDaysPassed / totalDaysThisYear) * 100;
+    const percentage = (hoursPassed / totalHoursThisYear) * 100;
 
     // Update progress bar width
     const yearlyProgressFill = document.getElementById("yearly-progress-fill");
@@ -178,8 +189,8 @@ function initialize() {
     // Update month progress every hour
     setInterval(updateMonthlyProgress, 60 * 60 * 1000);
     
-    // Update year progress every day
-    setInterval(updateYearlyProgress, 24 * 60 * 60 * 1000);
+    // Update year progress every hour
+    setInterval(updateYearlyProgress, 60 * 60 * 1000);
     
     // Update progress every minute
     setInterval(updateSunlightProgress, 60 * 1000);
