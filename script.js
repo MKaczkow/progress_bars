@@ -27,13 +27,13 @@ function updateMonthlyProgress() {
     // Calculate the total hours in this month
     const totalDaysThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const totalHoursThisMonth = totalDaysThisMonth * 24;
-    
+
     // Get start of the month
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
+
     // Calculate hours passed since start of month (milliseconds → hours)
     const hoursPassed = Math.floor((now - startOfMonth) / (1000 * 60 * 60));
-    
+
     // Calculate the percentage of the month that has passed
     const percentage = (hoursPassed / totalHoursThisMonth) * 100;
 
@@ -52,13 +52,13 @@ function updateYearlyProgress() {
     // Calculate the total hours passed this year
     const isLeapYear = new Date(now.getFullYear(), 1, 29).getDate() === 29;
     const totalHoursThisYear = isLeapYear ? 366 * 24 : 365 * 24;
-    
+
     // Get start of the year
     const startOfYear = new Date(now.getFullYear(), 0, 1);
-    
+
     // Calculate hours passed since start of year (milliseconds → hours)
     const hoursPassed = Math.floor((now - startOfYear) / (1000 * 60 * 60));
-    
+
     // Calculate the percentage of the year that has passed
     const percentage = (hoursPassed / totalHoursThisYear) * 100;
 
@@ -74,11 +74,12 @@ function updateYearlyProgress() {
 async function updateSunlightProgress() {
     const now = new Date();
 
+    const { latitude, longitude } = getUserLocation();
+
     try {
         const { sunrise, sunset } = await getSunriseSunset(
-            // Replace with your location's latitude and longitude
-            52.2297, // Latitude for Warsaw
-            21.0122  // Longitude for Warsaw
+            latitude,
+            longitude
         );
 
         if (!sunrise || !sunset) {
@@ -89,6 +90,7 @@ async function updateSunlightProgress() {
         // Parse the API's time strings into Date objects
         const sunriseDate = parseTimeString(sunrise, now);
         const sunsetDate = parseTimeString(sunset, now);
+        console.log("Sunrise:", sunriseDate, "Sunset:", sunsetDate);
 
         // Calculate total daylight minutes
         const daylightMinutes = (sunsetDate - sunriseDate) / (1000 * 60);
@@ -131,29 +133,30 @@ let sunriseSunsetCache = {
 
 async function getSunriseSunset(latitude, longitude) {
 
-    const url = `https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&date=today`;
+    const timezoneIdentifier = Intl.DateTimeFormat().resolvedOptions().timeZone;  // Should be "Europe/Warsaw"
+    const cachedData = sunriseSunsetCache.data;
+    const url = `https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&date=today&tzid=${timezoneIdentifier}`;
 
     // Check if we have cached data less than 1 hour old
     const currentTime = Date.now();
-    if (sunriseSunsetCache.data && (currentTime - sunriseSunsetCache.timestamp < 60 * 60 * 1000)) {
+    if (cachedData && (currentTime - sunriseSunsetCache.timestamp < 60 * 60 * 1000)) {
         console.log("Using cached sunrise/sunset data");
-        return sunriseSunsetCache.data;
+        return cachedData;
     }
 
     console.log("Fetching fresh sunrise/sunset data");
     try {
         const response = await fetch(url);
-        const data = await response.json();
-        if (data.results) {
-            console.log("Sunrise/sunset data fetched successfully:", data.results);
-            return {
-                sunrise: data.results.sunrise,
-                sunset: data.results.sunset,
-            };
-        } else {
-            console.error("Sunrise/sunset data not found.");
-            return null;
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const jsonData = await response.json();
+
+        // Update the cache with the fetched data and timestamp
+        sunriseSunsetCache.data = jsonData.results;
+        sunriseSunsetCache.timestamp = currentTime;
+
+        return jsonData.results;
     } catch (error) {
         console.error("Error fetching sunrise/sunset data:", error);
         return null;
@@ -180,18 +183,44 @@ function parseTimeString(timeString, currentDate) {
     return date;
 }
 
+function getUserLocation() {
+    // Default location (Warsaw)
+    const latitude = 52.2297;
+    const longitude = 21.0122;
+    
+    // No geolocation support in browser
+    if (!navigator.geolocation) {
+        console.log("Geolocation not supported, using default location");
+        return { latitude, longitude };
+    }
+    
+    // Try to get user location, but return default immediately
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            console.log("Location obtained:", position.coords.latitude, position.coords.longitude);
+            // This happens after the function returns, so we can't use it immediately
+        },
+        (error) => {
+            console.log("Geolocation error:", error.message);
+        }
+    );
+    
+    // Return default values immediately
+    return { latitude, longitude };
+}
+
 function initialize() {
     const now = new Date();
-    
+
     // Update day progress every minute
     setInterval(updateDailyProgress, 60 * 1000);
-    
+
     // Update month progress every hour
     setInterval(updateMonthlyProgress, 60 * 60 * 1000);
-    
+
     // Update year progress every hour
     setInterval(updateYearlyProgress, 60 * 60 * 1000);
-    
+
     // Update progress every minute
     setInterval(updateSunlightProgress, 60 * 1000);
 

@@ -1,2 +1,2 @@
-# progress_bars
-A bunch of widgets to showcase progress bars of "how much X has passed"
+# Progress Bars
+A bunch of widgets to showcase progress bars of "how much X has passed", uses [Geolocation API](https://w3c.github.io/geolocation/) to get user's location and [SunriseSunset.io](https://sunrisesunset.io/) to get the sunrise and sunset times for said location.
